@@ -17,7 +17,6 @@ body {
 }
 
 .header {
-    text-align: center;
     color: white;
     margin-bottom: 40px;
 }
@@ -31,6 +30,82 @@ body {
 .header p {
     font-size: 1.2rem;
     opacity: 0.9;
+}
+
+/* Language Toggle */
+.language-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.language-toggle button {
+    padding: 8px 20px;
+    border: 2px solid white;
+    background: transparent;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.language-toggle button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.language-toggle button.active {
+    background: white;
+    color: #667eea;
+}
+
+/* Explanation Card */
+.explanation-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin-bottom: 30px;
+}
+
+.explanation-toggle {
+    width: 100%;
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #667eea;
+    cursor: pointer;
+    padding: 10px;
+    transition: all 0.2s;
+}
+
+.explanation-toggle:hover {
+    background: #f3f4f6;
+    border-radius: 8px;
+}
+
+.explanation-content {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #e5e7eb;
+    line-height: 1.6;
+}
+
+.explanation-content h4 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #374151;
+}
+
+.explanation-content ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.explanation-content li {
+    padding: 8px 0;
+    font-weight: 500;
 }
 
 .search-card {
@@ -186,6 +261,25 @@ body {
 
 .match-result.loss {
     background: #f44336;
+    color: white;
+}
+
+/* Team Badge */
+.team-badge {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.team-badge.blue {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+}
+
+.team-badge.red {
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
     color: white;
 }
 

@@ -19,11 +19,73 @@ const SERVERS = [
     { code: 'VN', name: 'Vietnam' },
 ];
 
+const TRANSLATIONS = {
+    ko: {
+        title: '⚔️ LoL MII 분석기',
+        subtitle: '매칭 무결성 지수 - 당신의 게임을 분석하세요',
+        summonerName: '소환사 이름',
+        tagLine: '태그',
+        server: '서버',
+        search: '검색',
+        searching: '검색 중...',
+        loading: '데이터 로딩 중...',
+        error: '오류',
+        recentMatches: '의 최근 매치',
+        victory: '승리',
+        defeat: '패배',
+        backToMatches: '← 매치 목록으로',
+        blueTeam: '블루 팀',
+        redTeam: '레드 팀',
+        teamAvgMII: '팀 평균 MII',
+        // Explanation
+        whatIsMII: 'MII란 무엇인가요?',
+        miiExplanation: 'Match Integrity Index (MII)는 팀원들의 경기력을 수치화한 지표입니다. 높을수록 팀원들의 퍼포먼스가 나쁘다는 의미입니다.',
+        howToRead: 'MII 해석 방법',
+        miiRange1: '0-40: 좋은 매칭 품질',
+        miiRange2: '40-60: 평균적인 매칭',
+        miiRange3: '60-80: 나쁜 매칭 품질 (팀원 퍼포먼스 저조)',
+        miiRange4: '80-100: 심각한 불균형 (루저큐 의심)',
+        calculation: '계산 방식',
+        calcFormula: 'MII = (팀 평균 데스 × 3.0) - (팀 평균 KDA × 2.0) - (정규화된 딜량 × 15)',
+        calcNote: '* 자신을 제외한 팀원들의 평균 수치로 계산됩니다',
+    },
+    en: {
+        title: '⚔️ LoL MII Analyzer',
+        subtitle: 'Match Integrity Index - Analyze Your League Games',
+        summonerName: 'Summoner Name',
+        tagLine: 'Tag Line',
+        server: 'Server',
+        search: 'Search',
+        searching: 'Searching...',
+        loading: 'Loading data...',
+        error: 'Error',
+        recentMatches: 'Recent Matches for',
+        victory: 'Victory',
+        defeat: 'Defeat',
+        backToMatches: '← Back to Matches',
+        blueTeam: 'Blue Team',
+        redTeam: 'Red Team',
+        teamAvgMII: 'Team Avg MII',
+        // Explanation
+        whatIsMII: 'What is MII?',
+        miiExplanation: 'Match Integrity Index (MII) quantifies your teammates\' performance. Higher values indicate worse teammate performance.',
+        howToRead: 'How to Interpret MII',
+        miiRange1: '0-40: Good match quality',
+        miiRange2: '40-60: Average match quality',
+        miiRange3: '60-80: Poor match quality (underperforming teammates)',
+        miiRange4: '80-100: Severe imbalance (Loser\'s Queue suspected)',
+        calculation: 'Calculation Method',
+        calcFormula: 'MII = (Team Avg Deaths × 3.0) - (Team Avg KDA × 2.0) - (Normalized Damage × 15)',
+        calcNote: '* Calculated from your teammates\' average stats (excluding yourself)',
+    }
+};
+
 const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost:3000/api'
     : '/api';
 
 function App() {
+    const [lang, setLang] = useState('ko');
     const [gameName, setGameName] = useState('');
     const [tagLine, setTagLine] = useState('');
     const [server, setServer] = useState('NA');
@@ -31,6 +93,9 @@ function App() {
     const [matches, setMatches] = useState(null);
     const [analysis, setAnalysis] = useState(null);
     const [error, setError] = useState(null);
+    const [showExplanation, setShowExplanation] = useState(false);
+
+    const t = TRANSLATIONS[lang];
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -93,14 +158,62 @@ function App() {
     return (
         <div className="container">
             <div className="header">
-                <h1>⚔️ LoL MII Analyzer</h1>
-                <p>Match Integrity Index - Analyze Your League Games</p>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <div>
+                        <h1>{t.title}</h1>
+                        <p>{t.subtitle}</p>
+                    </div>
+                    <div className="language-toggle">
+                        <button
+                            className={lang === 'ko' ? 'active' : ''}
+                            onClick={() => setLang('ko')}
+                        >
+                            한국어
+                        </button>
+                        <button
+                            className={lang === 'en' ? 'active' : ''}
+                            onClick={() => setLang('en')}
+                        >
+                            English
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* MII Explanation Section */}
+            <div className="explanation-card">
+                <button
+                    className="explanation-toggle"
+                    onClick={() => setShowExplanation(!showExplanation)}
+                >
+                    {t.whatIsMII} {showExplanation ? '▼' : '▶'}
+                </button>
+
+                {showExplanation && (
+                    <div className="explanation-content">
+                        <p><strong>{t.miiExplanation}</strong></p>
+
+                        <h4>{t.howToRead}:</h4>
+                        <ul>
+                            <li style={{color: '#10b981'}}>✓ {t.miiRange1}</li>
+                            <li style={{color: '#f59e0b'}}>⚠ {t.miiRange2}</li>
+                            <li style={{color: '#ef4444'}}>✗ {t.miiRange3}</li>
+                            <li style={{color: '#dc2626'}}>⚠️ {t.miiRange4}</li>
+                        </ul>
+
+                        <h4>{t.calculation}:</h4>
+                        <code style={{display: 'block', padding: '10px', background: '#1f2937', borderRadius: '5px', fontSize: '0.85rem'}}>
+                            {t.calcFormula}
+                        </code>
+                        <p style={{fontSize: '0.85rem', color: '#9ca3af', marginTop: '5px'}}>{t.calcNote}</p>
+                    </div>
+                )}
             </div>
 
             <div className="search-card">
                 <form onSubmit={handleSearch} className="search-form">
                     <div className="form-group">
-                        <label>Summoner Name</label>
+                        <label>{t.summonerName}</label>
                         <input
                             type="text"
                             value={gameName}
@@ -111,7 +224,7 @@ function App() {
                     </div>
 
                     <div className="form-group">
-                        <label>Tag Line</label>
+                        <label>{t.tagLine}</label>
                         <input
                             type="text"
                             value={tagLine}
@@ -122,7 +235,7 @@ function App() {
                     </div>
 
                     <div className="form-group">
-                        <label>Server</label>
+                        <label>{t.server}</label>
                         <select value={server} onChange={(e) => setServer(e.target.value)}>
                             {SERVERS.map(s => (
                                 <option key={s.code} value={s.code}>
@@ -133,7 +246,7 @@ function App() {
                     </div>
 
                     <button type="submit" className="btn btn-primary" disabled={loading}>
-                        {loading ? 'Searching...' : 'Search'}
+                        {loading ? t.searching : t.search}
                     </button>
                 </form>
             </div>
@@ -141,19 +254,19 @@ function App() {
             {loading && (
                 <div className="loading">
                     <div className="spinner"></div>
-                    <p>Loading data...</p>
+                    <p>{t.loading}</p>
                 </div>
             )}
 
             {error && (
                 <div className="error">
-                    <strong>Error:</strong> {error}
+                    <strong>{t.error}:</strong> {error}
                 </div>
             )}
 
             {matches && !analysis && (
                 <div className="matches-list">
-                    <h2>Recent Matches for {matches.player}</h2>
+                    <h2>{t.recentMatches} {matches.player}</h2>
                     {matches.matches.map((match, idx) => (
                         <div
                             key={idx}
@@ -169,9 +282,14 @@ function App() {
                                     {formatTimestamp(match.timestamp)}
                                 </span>
                             </div>
-                            <span className={`match-result ${match.win ? 'win' : 'loss'}`}>
-                                {match.win ? 'Victory' : 'Defeat'}
-                            </span>
+                            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px'}}>
+                                <span className={`team-badge ${match.team.toLowerCase()}`}>
+                                    {match.team} Team
+                                </span>
+                                <span className={`match-result ${match.win ? 'win' : 'loss'}`}>
+                                    {match.win ? t.victory : t.defeat}
+                                </span>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -183,7 +301,7 @@ function App() {
                         className="btn btn-primary back-button"
                         onClick={() => setAnalysis(null)}
                     >
-                        ← Back to Matches
+                        {t.backToMatches}
                     </button>
 
                     <div className="verdict-card">
@@ -194,14 +312,14 @@ function App() {
                     <div className="teams-container">
                         <div className="team-card blue">
                             <div className="team-header">
-                                <h3>Blue Team</h3>
+                                <h3>{t.blueTeam}</h3>
                                 <span className="team-status">
-                                    {analysis.blue_team.won ? '✓ Victory' : '✗ Defeat'}
+                                    {analysis.blue_team.won ? `✓ ${t.victory}` : `✗ ${t.defeat}`}
                                 </span>
                             </div>
 
                             <div className="avg-mii">
-                                Team Avg MII: {analysis.blue_team.avg_mii}
+                                {t.teamAvgMII}: {analysis.blue_team.avg_mii}
                             </div>
 
                             <div className="player-list">
@@ -225,14 +343,14 @@ function App() {
 
                         <div className="team-card red">
                             <div className="team-header">
-                                <h3>Red Team</h3>
+                                <h3>{t.redTeam}</h3>
                                 <span className="team-status">
-                                    {analysis.red_team.won ? '✓ Victory' : '✗ Defeat'}
+                                    {analysis.red_team.won ? `✓ ${t.victory}` : `✗ ${t.defeat}`}
                                 </span>
                             </div>
 
                             <div className="avg-mii">
-                                Team Avg MII: {analysis.red_team.avg_mii}
+                                {t.teamAvgMII}: {analysis.red_team.avg_mii}
                             </div>
 
                             <div className="player-list">

@@ -114,10 +114,14 @@ class handler(BaseHTTPRequestHandler):
                 # Find player in match
                 for participant in match_data['info']['participants']:
                     if participant['puuid'] == puuid:
+                        # Determine team color (Blue = 100, Red = 200)
+                        team_color = 'Blue' if participant['teamId'] == 100 else 'Red'
+
                         matches.append({
                             'match_id': match_id,
                             'champion': participant['championName'],
                             'win': participant['win'],
+                            'team': team_color,
                             'kills': participant['kills'],
                             'deaths': participant['deaths'],
                             'assists': participant['assists'],
