@@ -39,15 +39,24 @@ const TRANSLATIONS = {
         teamAvgMII: '팀 평균 MII',
         // Explanation
         whatIsMII: 'MII란 무엇인가요?',
-        miiExplanation: 'Match Integrity Index (MII)는 팀원들의 경기력을 수치화한 지표입니다. 높을수록 팀원들의 퍼포먼스가 나쁘다는 의미입니다.',
+        miiExplanation: 'Match Integrity Index (MII)는 해당 게임 10명 중 상대적 성적을 나타냅니다. 낮을수록 잘한 선수, 높을수록 못한 선수입니다.',
         howToRead: 'MII 해석 방법',
-        miiRange1: '0-40: 좋은 매칭 품질',
-        miiRange2: '40-60: 평균적인 매칭',
-        miiRange3: '60-80: 나쁜 매칭 품질 (팀원 퍼포먼스 저조)',
-        miiRange4: '80-100: 심각한 불균형 (루저큐 의심)',
+        miiRange1: '0-25: 매우 우수한 성적 (상위 1-3등)',
+        miiRange2: '25-50: 평균 이상 (4-6등)',
+        miiRange3: '50-75: 평균 이하 (7-8등)',
+        miiRange4: '75-100: 매우 저조한 성적 (하위 9-10등)',
         calculation: '계산 방식',
-        calcFormula: 'MII = (팀 평균 데스 × 3.0) - (팀 평균 KDA × 2.0) - (정규화된 딜량 × 15)',
-        calcNote: '* 자신을 제외한 팀원들의 평균 수치로 계산됩니다',
+        calcFormula: '게임 내 10명을 성적순으로 정렬 → 1등: MII 0, 2등: MII 11.1, ..., 10등: MII 100',
+        calcNote: '* 성적 = (KDA × 10) - (데스 × 3) + (딜량 / 1000)',
+        // Verdicts
+        balancedMatch: '균형잡힌 매치',
+        balancedDetail: '양팀 모두 비슷한 수준의 선수들로 구성되었습니다.',
+        slightImbalance: '약간의 불균형',
+        slightImbalanceBlue: '블루팀이 약간 더 나은 선수들로 구성되었습니다.',
+        slightImbalanceRed: '레드팀이 약간 더 나은 선수들로 구성되었습니다.',
+        significantImbalance: '심각한 불균형',
+        significantImbalanceBlue: '블루팀이 훨씬 더 나은 선수들로 구성되었습니다.',
+        significantImbalanceRed: '레드팀이 훨씬 더 나은 선수들로 구성되었습니다.',
     },
     en: {
         title: '⚔️ LoL MII Analyzer',
@@ -68,15 +77,24 @@ const TRANSLATIONS = {
         teamAvgMII: 'Team Avg MII',
         // Explanation
         whatIsMII: 'What is MII?',
-        miiExplanation: 'Match Integrity Index (MII) quantifies your teammates\' performance. Higher values indicate worse teammate performance.',
+        miiExplanation: 'Match Integrity Index (MII) represents relative performance among all 10 players in the match. Lower = better performance, Higher = worse performance.',
         howToRead: 'How to Interpret MII',
-        miiRange1: '0-40: Good match quality',
-        miiRange2: '40-60: Average match quality',
-        miiRange3: '60-80: Poor match quality (underperforming teammates)',
-        miiRange4: '80-100: Severe imbalance (Loser\'s Queue suspected)',
+        miiRange1: '0-25: Excellent performance (Top 1-3 players)',
+        miiRange2: '25-50: Above average (Rank 4-6)',
+        miiRange3: '50-75: Below average (Rank 7-8)',
+        miiRange4: '75-100: Very poor performance (Bottom 9-10)',
         calculation: 'Calculation Method',
-        calcFormula: 'MII = (Team Avg Deaths × 3.0) - (Team Avg KDA × 2.0) - (Normalized Damage × 15)',
-        calcNote: '* Calculated from your teammates\' average stats (excluding yourself)',
+        calcFormula: 'Rank all 10 players by performance → 1st: MII 0, 2nd: MII 11.1, ..., 10th: MII 100',
+        calcNote: '* Performance = (KDA × 10) - (Deaths × 3) + (Damage / 1000)',
+        // Verdicts
+        balancedMatch: 'Balanced Match',
+        balancedDetail: 'Both teams had similar skill levels.',
+        slightImbalance: 'Slight Imbalance',
+        slightImbalanceBlue: 'Blue team had slightly better players.',
+        slightImbalanceRed: 'Red team had slightly better players.',
+        significantImbalance: 'Significant Imbalance',
+        significantImbalanceBlue: 'Blue team had significantly better players.',
+        significantImbalanceRed: 'Red team had significantly better players.',
     }
 };
 
@@ -153,6 +171,29 @@ function App() {
     const formatTimestamp = (timestamp) => {
         const date = new Date(timestamp);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    };
+
+    const translateVerdict = (verdict, verdictDetail) => {
+        const blueAvg = analysis?.blue_team?.avg_mii || 0;
+        const redAvg = analysis?.red_team?.avg_mii || 0;
+        const betterTeam = blueAvg < redAvg ? 'blue' : 'red';
+
+        if (verdict.includes('Balanced')) {
+            return {
+                title: t.balancedMatch,
+                detail: t.balancedDetail
+            };
+        } else if (verdict.includes('Slight')) {
+            return {
+                title: t.slightImbalance,
+                detail: betterTeam === 'blue' ? t.slightImbalanceBlue : t.slightImbalanceRed
+            };
+        } else {
+            return {
+                title: t.significantImbalance,
+                detail: betterTeam === 'blue' ? t.significantImbalanceBlue : t.significantImbalanceRed
+            };
+        }
     };
 
     return (
@@ -305,8 +346,8 @@ function App() {
                     </button>
 
                     <div className="verdict-card">
-                        <h2>{analysis.verdict}</h2>
-                        <p>{analysis.verdict_detail}</p>
+                        <h2>{translateVerdict(analysis.verdict, analysis.verdict_detail).title}</h2>
+                        <p>{translateVerdict(analysis.verdict, analysis.verdict_detail).detail}</p>
                     </div>
 
                     <div className="teams-container">

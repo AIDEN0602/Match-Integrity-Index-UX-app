@@ -126,6 +126,7 @@ class handler(BaseHTTPRequestHandler):
         # Split into teams
         blue_team = []
         red_team = []
+        all_players = []
 
         for p in participants:
             player_data = {
@@ -140,23 +141,36 @@ class handler(BaseHTTPRequestHandler):
                 'gold': p['goldEarned'],
                 'cs': p['totalMinionsKilled'] + p['neutralMinionsKilled'],
                 'vision_score': p['visionScore'],
-                'win': p['win']
+                'win': p['win'],
+                'team_id': p['teamId']
             }
 
+            all_players.append(player_data)
             if p['teamId'] == 100:
                 blue_team.append(player_data)
             else:
                 red_team.append(player_data)
 
-        # Calculate MII for each player
-        for player in blue_team:
-            # Get other teammates (excluding self)
-            teammates = [p for p in blue_team if p['name'] != player['name']]
-            player['mii'] = self.calculate_mii(player, teammates)
+        # Calculate performance score for ranking (lower deaths, higher KDA, higher damage = better)
+        for player in all_players:
+            # Performance score: prioritize KDA and minimize deaths
+            player['performance'] = (
+                player['kda'] * 10 -
+                player['deaths'] * 3 +
+                (player['damage'] / 1000)
+            )
 
-        for player in red_team:
-            teammates = [p for p in red_team if p['name'] != player['name']]
-            player['mii'] = self.calculate_mii(player, teammates)
+        # Rank all 10 players by performance
+        all_players.sort(key=lambda x: x['performance'], reverse=True)
+
+        # Assign MII based on rank (1st = 0, 10th = 100)
+        for rank, player in enumerate(all_players):
+            # Distribute 0-100 evenly across 10 players
+            player['mii'] = round((rank / 9) * 100, 1)
+
+        # Re-organize into teams (preserve original MII assignment)
+        blue_team = [p for p in all_players if p['team_id'] == 100]
+        red_team = [p for p in all_players if p['team_id'] == 200]
 
         # Calculate team averages
         blue_avg_mii = sum(p['mii'] for p in blue_team) / len(blue_team)
