@@ -312,7 +312,7 @@ function App() {
 
             {matches && !analysis && (
                 <div className="matches-list">
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px'}}>
                         <h2>{matches.player}{t.recentMatches}</h2>
                         {matches.average_mii !== null && (
                             <div style={{fontSize: '1.2rem', fontWeight: 'bold', padding: '10px 20px', background: '#374151', borderRadius: '8px'}}>
@@ -320,39 +320,6 @@ function App() {
                             </div>
                         )}
                     </div>
-
-                    {/* MII Trend Mini Graph */}
-                    {matches.average_mii !== null && (
-                        <div style={{marginBottom: '30px', padding: '20px', background: 'rgba(31, 41, 55, 0.5)', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.2)'}}>
-                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-                                <span style={{color: '#9ca3af', fontSize: '0.9rem'}}>MII Trend (최근 → 과거)</span>
-                                <span style={{color: '#9ca3af', fontSize: '0.85rem'}}>낮을수록 유리한 환경</span>
-                            </div>
-                            <div style={{display: 'flex', gap: '4px', alignItems: 'flex-end', height: '80px'}}>
-                                {matches.matches.slice(0, displayCount).map((match, idx) => {
-                                    const height = Math.max(10, 100 - (idx * 3));
-                                    const color = idx < 5 ? '#3b82f6' : idx < 10 ? '#8b5cf6' : idx < 15 ? '#ec4899' : '#6366f1';
-                                    return (
-                                        <div
-                                            key={idx}
-                                            style={{
-                                                flex: 1,
-                                                height: `${height}%`,
-                                                background: color,
-                                                borderRadius: '2px 2px 0 0',
-                                                opacity: 0.7,
-                                                transition: 'all 0.3s',
-                                                cursor: 'pointer'
-                                            }}
-                                            onMouseEnter={(e) => e.target.style.opacity = '1'}
-                                            onMouseLeave={(e) => e.target.style.opacity = '0.7'}
-                                            title={`Game ${idx + 1}`}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
 
                     {matches.matches.slice(0, displayCount).map((match, idx) => (
                         <div
