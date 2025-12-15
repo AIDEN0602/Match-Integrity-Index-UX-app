@@ -1,6 +1,6 @@
 # LoL MII Analyzer - Web Application
 
-A web-based League of Legends Match Integrity Index (MII) analyzer that helps players understand their match quality and detect potential matchmaking imbalances.
+A web-based League of Legends Match Integrity Index (MII) analyzer that measures **structural fairness** of competitive matches, not individual player skill. Unlike ranking systems (OP.GG, etc.), MII evaluates whether the match environment was fair enough for meaningful competition to exist.
 
 ## Features
 
@@ -93,22 +93,39 @@ mii-web-app/
 2. **Match List**: System fetches recent 10 ranked matches from Riot API
 3. **Match Selection**: Click on any match to analyze
 4. **MII Calculation**:
-   - Calculates Match Integrity Index for all 10 players
-   - Based on teammate performance (deaths, KDA, damage)
-   - Higher MII = worse teammates
+   - Ranks all 10 players by in-game performance
+   - Assigns MII based on rank position (1st = 0, 10th = 100)
+   - **Lower MII = advantageous team environment**
+   - **Higher MII = disadvantaged team environment**
 5. **Results**: Shows both teams with individual MII scores and team averages
+
+## What MII Measures
+
+**MII is NOT a skill rating system.** It measures:
+- **Structural fairness**: Was this match winnable given team composition?
+- **Environmental disadvantage**: How much burden did team performance create?
+- **Match integrity**: Were competitive conditions fair?
+
+Based on NYU research showing that matches with MII >60 have <20% win rates across all skill tiers, indicating structurally unwinnable conditions regardless of individual skill.
 
 ## MII Calculation Formula
 
 ```
-MII = (Team Avg Deaths × 3.0) - (Team Avg KDA × 2.0) - (Normalized Damage × 15)
+Performance Score = (KDA × 10) - (Deaths × 3) + (Damage Dealt / 1000)
 ```
 
-Normalized to 0-100 scale where:
-- 0-40: Good match quality
-- 40-60: Average
-- 60-80: Poor match quality
-- 80-100: Severe imbalance
+All 10 players ranked by performance → MII assigned:
+- 1st place: MII 0
+- 2nd place: MII 11.1
+- 3rd place: MII 22.2
+- ...
+- 10th place: MII 100
+
+**Team Average MII** indicates overall team environment quality:
+- 0-25: Highly advantageous team
+- 25-50: Above average team
+- 50-75: Below average team (structurally difficult)
+- 75-100: Severely disadvantaged team (likely unwinnable)
 
 ## License
 
