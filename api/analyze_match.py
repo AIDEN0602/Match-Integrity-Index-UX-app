@@ -130,8 +130,8 @@ class handler(BaseHTTPRequestHandler):
 
         for p in participants:
             player_data = {
-                'name': p['riotIdGameName'],
-                'tag': p['riotIdTagline'],
+                'name': p.get('riotIdGameName', p.get('summonerName', 'Unknown')),
+                'tag': p.get('riotIdTagline', 'N/A'),
                 'champion': p['championName'],
                 'kills': p['kills'],
                 'deaths': p['deaths'],
