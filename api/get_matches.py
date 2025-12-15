@@ -1,5 +1,5 @@
 """
-Vercel Serverless Function: Get recent 10 matches for a player
+Vercel Serverless Function: Get recent 20 matches for a player
 """
 from http.server import BaseHTTPRequestHandler
 import json
@@ -62,6 +62,9 @@ class handler(BaseHTTPRequestHandler):
             # Get recent matches
             matches = self.get_recent_matches(puuid, continent, region)
 
+            # Calculate average MII for all matches
+            avg_mii = self.calculate_average_mii(matches, puuid, continent)
+
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -71,7 +74,8 @@ class handler(BaseHTTPRequestHandler):
                 'success': True,
                 'player': f"{game_name}#{tag_line}",
                 'server': server,
-                'matches': matches
+                'matches': matches,
+                'average_mii': avg_mii
             }
 
             self.wfile.write(json.dumps(response).encode())
@@ -90,10 +94,10 @@ class handler(BaseHTTPRequestHandler):
         return None
 
     def get_recent_matches(self, puuid, continent, region):
-        """Get recent 10 ranked matches"""
+        """Get recent 20 ranked matches"""
         # Get match IDs
         url = f"https://{continent}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids"
-        params = {'type': 'ranked', 'start': 0, 'count': 10}
+        params = {'type': 'ranked', 'start': 0, 'count': 20}
         headers = {"X-Riot-Token": RIOT_API_KEY}
 
         response = requests.get(url, params=params, headers=headers)
@@ -132,6 +136,56 @@ class handler(BaseHTTPRequestHandler):
                         break
 
         return matches
+
+    def calculate_average_mii(self, matches, puuid, continent):
+        """Calculate average MII across all matches for the player"""
+        if not matches:
+            return None
+
+        total_mii = 0
+        valid_matches = 0
+
+        headers = {"X-Riot-Token": RIOT_API_KEY}
+
+        for match_info in matches:
+            match_id = match_info['match_id']
+
+            # Get full match data
+            match_url = f"https://{continent}.api.riotgames.com/lol/match/v5/matches/{match_id}"
+            match_response = requests.get(match_url, headers=headers)
+
+            if match_response.status_code == 200:
+                match_data = match_response.json()
+                participants = match_data['info']['participants']
+
+                # Calculate performance for all players
+                all_players = []
+                for p in participants:
+                    player_data = {
+                        'puuid': p['puuid'],
+                        'performance': (
+                            ((p['kills'] + p['assists']) / max(p['deaths'], 1)) * 10 -
+                            p['deaths'] * 3 +
+                            (p['totalDamageDealtToChampions'] / 1000)
+                        )
+                    }
+                    all_players.append(player_data)
+
+                # Rank players by performance
+                all_players.sort(key=lambda x: x['performance'], reverse=True)
+
+                # Find player's rank and calculate MII
+                for rank, player in enumerate(all_players):
+                    if player['puuid'] == puuid:
+                        # MII: 0 for 1st place, 100 for 10th place
+                        mii = round((rank / 9) * 100, 1)
+                        total_mii += mii
+                        valid_matches += 1
+                        break
+
+        if valid_matches > 0:
+            return round(total_mii / valid_matches, 1)
+        return None
 
     def send_error_response(self, code, message):
         self.send_response(code)
